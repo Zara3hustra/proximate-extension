@@ -1,0 +1,458 @@
+import { loadState, saveState } from '../lib/storage.js';
+import { parseEntry, ValidationError } from '../lib/domain.js';
+import { PRESET_DEFINITIONS, PRESET_ORDER } from '../lib/presets.js';
+
+const $ = (sel) => document.querySelector(sel);
+
+let state = null;
+
+async function init() {
+  state = await loadState();
+  routeInitialScreen();
+  bindMain();
+  bindSettings();
+  bindFirstRun();
+}
+
+function routeInitialScreen() {
+  const screens = ['main', 'settings', 'firstrun'];
+  for (const s of screens) $(`#screen-${s}`).hidden = true;
+
+  if (!state.proxy || !state.proxy.host) {
+    $('#screen-firstrun').hidden = false;
+  } else {
+    showMain();
+  }
+}
+
+function showMain() {
+  $('#screen-main').hidden = false;
+  $('#screen-settings').hidden = true;
+  $('#screen-firstrun').hidden = true;
+  renderMain();
+}
+
+function showSettings() {
+  $('#screen-main').hidden = true;
+  $('#screen-settings').hidden = false;
+  $('#screen-firstrun').hidden = true;
+  renderSettings();
+}
+
+function renderMain() {
+  // Status line
+  const status = $('#status-line');
+  if (!state.enabled) {
+    status.textContent = 'Отключён';
+    status.classList.add('no-dot');
+  } else {
+    status.classList.remove('no-dot');
+    const t = state.proxy?.lastTest;
+    if (t?.ok) {
+      status.textContent = `Активен · ${t.ip} · ${t.country || ''} · ${t.latencyMs} мс`;
+    } else {
+      status.textContent = `Активен · ${state.proxy?.host}:${state.proxy?.port}`;
+    }
+  }
+
+  $('#master-toggle').checked = !!state.enabled;
+
+  // Preset grid
+  const grid = $('#preset-grid');
+  grid.innerHTML = '';
+  for (const key of PRESET_ORDER) {
+    const def = PRESET_DEFINITIONS[key];
+    const stored = state.presets[key];
+    const card = document.createElement('div');
+    card.className = 'preset-card' + (stored?.enabled ? ' on' : '');
+    card.dataset.key = key;
+    card.innerHTML = `
+      <div class="icon">${def.icon}</div>
+      <div class="label">${def.label}</div>
+    `;
+    card.addEventListener('click', () => togglePreset(key));
+    grid.appendChild(card);
+  }
+
+  // Custom domains list
+  const list = $('#custom-list');
+  list.innerHTML = '';
+  for (const entry of state.customDomains || []) {
+    const item = document.createElement('div');
+    item.className = 'custom-item';
+    const display = entry.mode === 'wildcard'
+      ? `*.${entry.value}`
+      : entry.mode === 'exact' ? `=${entry.value}` : entry.value;
+    item.innerHTML = `
+      <div class="dot"></div>
+      <div class="value">${escapeHtml(display)}</div>
+      <button class="remove" type="button" title="\u0423\u0434\u0430\u043b\u0438\u0442\u044c">\u00d7</button>
+    `;
+    item.querySelector('.remove').addEventListener('click', () => removeCustom(entry));
+    list.appendChild(item);
+  }
+}
+
+function bindMain() {
+  $('#master-toggle').addEventListener('change', async (e) => {
+    state.enabled = e.target.checked;
+    await persist();
+    renderMain();
+  });
+
+  $('#open-settings').addEventListener('click', () => showSettings());
+
+  $('#add-domain-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = $('#add-domain-input');
+    const errEl = $('#add-domain-error');
+    errEl.hidden = true;
+
+    let entry;
+    try {
+      entry = parseEntry(input.value);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        errEl.textContent = err.message;
+        errEl.hidden = false;
+        return;
+      }
+      throw err;
+    }
+
+    // Dedupe
+    const exists = (state.customDomains || []).find(
+      (x) => x.value === entry.value && x.mode === entry.mode
+    );
+    if (exists) {
+      errEl.textContent = 'Уже в списке';
+      errEl.hidden = false;
+      return;
+    }
+
+    state.customDomains = state.customDomains || [];
+    state.customDomains.push(entry);
+    await persist();
+    input.value = '';
+    renderMain();
+
+    showToast(`\u2713 ${entry.value} \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d`);
+    launchConfetti();
+  });
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 2400);
+}
+
+function launchConfetti() {
+  const container = document.createElement('div');
+  container.className = 'confetti';
+  document.body.appendChild(container);
+
+  const colors = ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#ec4899'];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDelay = (Math.random() * 0.3) + 's';
+    p.style.animationDuration = (1 + Math.random() * 0.8) + 's';
+    p.style.transform = `rotate(${Math.random() * 360}deg)`;
+    container.appendChild(p);
+  }
+  setTimeout(() => container.remove(), 2200);
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+async function removeCustom(entry) {
+  state.customDomains = (state.customDomains || []).filter(
+    (x) => !(x.value === entry.value && x.mode === entry.mode)
+  );
+  await persist();
+  renderMain();
+}
+
+async function togglePreset(key) {
+  state.presets[key].enabled = !state.presets[key].enabled;
+  await persist();
+  renderMain();
+}
+
+async function persist() {
+  await saveState(state);
+}
+
+// --- Settings screen ---
+
+function bindSettings() {
+  $('#back-to-main').addEventListener('click', () => showMain());
+
+  for (const pill of document.querySelectorAll('#scheme-pills .pill')) {
+    pill.addEventListener('click', async () => {
+      const scheme = pill.dataset.scheme;
+      ensureProxyObject();
+      if (scheme === 'auto') {
+        state.proxy.scheme = 'auto';
+        await persist();
+        renderSettings();
+        await autoDetectScheme();
+      } else {
+        state.proxy.scheme = scheme;
+        await persist();
+        renderSettings();
+      }
+    });
+  }
+
+  // Auto-parse proxy URL when pasted/typed into host field.
+  const hostEl = $('#cfg-host');
+  hostEl.addEventListener('blur', async () => {
+    ensureProxyObject();
+    const raw = hostEl.value.trim();
+    const parsed = tryParseProxyUrl(raw);
+    if (parsed) {
+      state.proxy.host = parsed.host;
+      if (parsed.port) state.proxy.port = parsed.port;
+      if (parsed.scheme) state.proxy.scheme = parsed.scheme;
+      if (parsed.user) state.proxy.user = parsed.user;
+      if (parsed.pass !== undefined) state.proxy.pass = parsed.pass;
+      // If URL had no explicit scheme (provider format), auto-detect.
+      if (!parsed.scheme) {
+        state.proxy.scheme = 'auto';
+      }
+      await persist();
+      renderSettings();
+      if (state.proxy.scheme === 'auto' && state.proxy.host && state.proxy.port) {
+        await autoDetectScheme();
+      }
+    } else {
+      state.proxy.host = raw;
+      await persist();
+    }
+  });
+
+  const otherFields = [
+    ['#cfg-port', 'port', (v) => parseInt(v, 10) || 0],
+    ['#cfg-user', 'user', (v) => v],
+    ['#cfg-pass', 'pass', (v) => v],
+  ];
+  for (const [sel, key, parse] of otherFields) {
+    const el = $(sel);
+    el.addEventListener('blur', async () => {
+      ensureProxyObject();
+      state.proxy[key] = parse(el.value);
+      await persist();
+    });
+  }
+
+  $('#test-proxy').addEventListener('click', () => runTest('TEST_PROXY'));
+  $('#test-gemini').addEventListener('click', () => runTest('TEST_GEMINI'));
+}
+
+function renderSettings() {
+  ensureProxyObject();
+  $('#cfg-host').value = state.proxy.host || '';
+  $('#cfg-port').value = state.proxy.port || '';
+  $('#cfg-user').value = state.proxy.user || '';
+  $('#cfg-pass').value = state.proxy.pass || '';
+
+  for (const pill of document.querySelectorAll('#scheme-pills .pill')) {
+    pill.classList.toggle('active', pill.dataset.scheme === state.proxy.scheme);
+  }
+
+  const scheme = state.proxy.scheme;
+  const isSocks = scheme === 'socks5' || scheme === 'socks4';
+  $('#socks-warn').hidden = !(isSocks && (state.proxy.user || state.proxy.pass));
+  $('#webrtc-warn').hidden = !isSocks;
+
+  $('#test-result').hidden = true;
+}
+
+/**
+ * Try to parse a proxy string. Supported formats:
+ *   - socks5://user:pass@host:port  (URL style)
+ *   - http://host:port
+ *   - host:port:user:pass            (provider style, e.g. 196.16.109.114:8000:N0eT6k:UK2c2X)
+ *   - host:port
+ * Returns { scheme?, host, port?, user?, pass? } or null if it's just a plain hostname.
+ */
+function tryParseProxyUrl(input) {
+  const SCHEMES = { http: 'http', https: 'https', socks5: 'socks5', socks4: 'socks4', socks: 'socks5' };
+
+  // --- Provider format: host:port:user:pass ---
+  // Detect by splitting on colons: 4 parts where part[1] is a number.
+  const hasScheme = /^[a-z][a-z0-9]*:\/\//i.test(input);
+  if (!hasScheme) {
+    const parts = input.trim().split(':');
+    if (parts.length === 4 && /^\d+$/.test(parts[1])) {
+      // Provider format: no scheme → auto-detect will determine it
+      return {
+        host: parts[0],
+        port: parseInt(parts[1], 10),
+        user: parts[2],
+        pass: parts[3],
+      };
+    }
+    // host:port only
+    if (parts.length === 2 && /^\d+$/.test(parts[1])) {
+      return { host: parts[0], port: parseInt(parts[1], 10) };
+    }
+  }
+
+  // --- URL format: scheme://user:pass@host:port ---
+  if (!hasScheme) return null;
+
+  let scheme = null;
+  let rest = input;
+
+  const schemeMatch = input.match(/^([a-z][a-z0-9]*):\/\//i);
+  if (schemeMatch) {
+    scheme = SCHEMES[schemeMatch[1].toLowerCase()] || null;
+    rest = input.slice(schemeMatch[0].length);
+  }
+
+  let user = null;
+  let pass = undefined;
+  const atIdx = rest.indexOf('@');
+  if (atIdx !== -1) {
+    const userinfo = rest.slice(0, atIdx);
+    rest = rest.slice(atIdx + 1);
+    const colonIdx = userinfo.indexOf(':');
+    if (colonIdx !== -1) {
+      user = decodeURIComponent(userinfo.slice(0, colonIdx));
+      pass = decodeURIComponent(userinfo.slice(colonIdx + 1));
+    } else {
+      user = decodeURIComponent(userinfo);
+    }
+  }
+
+  rest = rest.split(/[/?#]/)[0];
+  let host = rest;
+  let port = null;
+  const portMatch = rest.match(/:(\d+)$/);
+  if (portMatch) {
+    port = parseInt(portMatch[1], 10);
+    host = rest.slice(0, -portMatch[0].length);
+  }
+
+  if (!host) return null;
+
+  const result = { host };
+  if (scheme) result.scheme = scheme;
+  if (port) result.port = port;
+  if (user) result.user = user;
+  if (pass !== undefined) result.pass = pass;
+  return result;
+}
+
+function ensureProxyObject() {
+  if (!state.proxy) {
+    state.proxy = { host: '', port: 0, scheme: 'auto', user: '', pass: '' };
+  }
+}
+
+async function autoDetectScheme() {
+  if (!state.proxy?.host || !state.proxy?.port) return;
+
+  const result = $('#test-result');
+  const autoPill = document.querySelector('.pill[data-scheme="auto"]');
+  result.hidden = false;
+  result.className = 'result-block detecting';
+  result.innerHTML = '\u25f7 \u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435\u2026 HTTP';
+  if (autoPill) autoPill.classList.add('detecting');
+
+  // Fire-and-forget to background. Popup watches storage for live updates.
+  chrome.runtime.sendMessage({
+    type: 'DETECT_SCHEME',
+    host: state.proxy.host,
+    port: state.proxy.port,
+    user: state.proxy.user || '',
+    pass: state.proxy.pass || '',
+  });
+}
+
+// Watch storage changes for detect progress + general state updates.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes.state) return;
+  const newState = changes.state.newValue;
+  if (!newState) return;
+  state = newState;
+
+  const ds = state.detectStatus;
+  const result = $('#test-result');
+  const autoPill = document.querySelector('.pill[data-scheme="auto"]');
+
+  if (ds?.running) {
+    result.hidden = false;
+    result.className = 'result-block detecting';
+    result.innerHTML = `\u25f7 \u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435\u2026 ${ds.trying?.toUpperCase() || ''}`;
+    if (autoPill) autoPill.classList.add('detecting');
+  } else if (ds && !ds.running) {
+    if (autoPill) autoPill.classList.remove('detecting');
+    result.hidden = false;
+    if (ds.ok) {
+      result.className = 'result-block ok';
+      result.textContent = `\u2713 \u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0451\u043d: ${ds.scheme.toUpperCase()}`;
+      renderSettings();
+    } else {
+      result.className = 'result-block err';
+      result.textContent = `\u2717 ${ds.error || '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0438\u0442\u044c'}`;
+    }
+  }
+});
+
+async function runTest(type) {
+  const btnProxy = $('#test-proxy');
+  const btnGemini = $('#test-gemini');
+  const result = $('#test-result');
+  btnProxy.disabled = true;
+  btnGemini.disabled = true;
+  result.hidden = true;
+
+  try {
+    const res = await chrome.runtime.sendMessage({ type });
+    result.hidden = false;
+    if (res.ok) {
+      result.className = 'result-block ok';
+      if (type === 'TEST_PROXY') {
+        result.innerHTML = `\u2713 \u041f\u0440\u043e\u043a\u0441\u0438 \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d<br>IP: ${res.ip || '?'}<br>\u0421\u0442\u0440\u0430\u043d\u0430: ${res.country || '?'}<br>\u0417\u0430\u0434\u0435\u0440\u0436\u043a\u0430: ${res.latencyMs} \u043c\u0441`;
+      } else {
+        result.innerHTML = `\u2713 Gemini \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d<br>HTTP ${res.httpStatus}<br>\u0417\u0430\u0434\u0435\u0440\u0436\u043a\u0430: ${res.latencyMs} \u043c\u0441`;
+      }
+      state = await loadState();
+    } else {
+      result.className = 'result-block err';
+      result.textContent = `\u2717 ${res.error}`;
+    }
+  } finally {
+    btnProxy.disabled = false;
+    btnGemini.disabled = false;
+  }
+}
+
+// --- First-run screen ---
+
+function bindFirstRun() {
+  $('#firstrun-open-settings').addEventListener('click', () => {
+    ensureProxyObject();
+    showSettings();
+  });
+}
+
+init();

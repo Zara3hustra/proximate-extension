@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Proximate",
+  "version": "0.5.0",
+  "description": "Smart proxy router for Chromium. Routes AI tools and work services through your own proxy server — everything else goes direct.",
+  "homepage_url": "https://github.com/Aimagine-life/proximate",
+  "minimum_chrome_version": "120",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Proximate",
+    "default_icon": {
+      "16": "icons/off-16.png",
+      "32": "icons/off-32.png",
+      "48": "icons/off-48.png",
+      "128": "icons/off-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/off-16.png",
+    "32": "icons/off-32.png",
+    "48": "icons/off-48.png",
+    "128": "icons/off-128.png"
+  },
+  "permissions": [
+    "proxy",
+    "storage",
+    "webRequest",
+    "webRequestAuthProvider",
+    "tabs",
+    "privacy"
+  ],
+  "host_permissions": ["<all_urls>"]
+}

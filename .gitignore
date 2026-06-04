@@ -1,0 +1,21 @@
+.superpowers/
+.env
+node_modules/
+dist/
+*.log
+.DS_Store
+*.mp4
+
+# HyperFrames promo: regenerable render output
+promo/renders/
+# Claude Design: raw handoff export (not source)
+landing/_handoff/
+# HyperFrames: thumbnail cache
+promo/.thumbnails/
+# Cloudflare Pages build
+landing/dist/
+# Claude Design import mockups (не нужны для сайта)
+landing/uploads/
+# promo web-экспорт (дубль ассетов лендинга)
+promo/web/
+.wrangler/

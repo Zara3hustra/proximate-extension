@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --bg: #f8f9fb;          /* page surface (matches landing) */
+        --bg-soft: #eef1f4;
+        --card: #ffffff;
+        --card-tint: #e0efec;   /* light green tile (preset cards) */
+        --ink: #151c24;         /* headings */
+        --ink-dim: #4a5560;     /* body */
+        --ink-mute: #5e6a76;    /* labels (AA on light) */
+        --green: #3a6f69;       /* brand primary (logo, buttons, toggle) */
+        --green-deep: #2c5651;
+        --green-soft: #4f8a82;
+        --line: #e4e8ec;
+        --line-strong: #d4dbe0;
+      }
+
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", system-ui, sans-serif;
+        font-feature-settings: "ss01", "cv01";
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .scene { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; }
+
+      /* ---------- shared decoratives ---------- */
+      .glow { position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; }
+      .glow.g1 { background: radial-gradient(circle, rgba(58,111,105,0.20), rgba(58,111,105,0) 70%); }
+      .glow.g2 { background: radial-gradient(circle, rgba(79,138,130,0.16), rgba(79,138,130,0) 70%); }
+
+      .grid {
+        position: absolute; inset: 0; pointer-events: none; opacity: 0.6;
+        background-image:
+          linear-gradient(rgba(21,28,36,0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(21,28,36,0.035) 1px, transparent 1px);
+        background-size: 64px 64px;
+        mask-image: radial-gradient(circle at 50% 45%, #000 30%, transparent 78%);
+        -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 30%, transparent 78%);
+      }
+      .ghost {
+        position: absolute; font-weight: 800; letter-spacing: -0.04em;
+        color: rgba(58,111,105,0.06); white-space: nowrap; pointer-events: none; user-select: none;
+      }
+      .mark {
+        position: absolute; font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 18px; letter-spacing: 0.18em; color: var(--ink-mute); text-transform: uppercase;
+      }
+      .corner { position: absolute; width: 26px; height: 26px; border: 2px solid var(--line-strong); }
+      .corner.tl { top: 56px; left: 56px; border-right: 0; border-bottom: 0; }
+      .corner.br { bottom: 56px; right: 56px; border-left: 0; border-top: 0; }
+
+      .badge {
+        display: grid; place-items: center;
+        width: 128px; height: 128px; border-radius: 28px;
+        background: var(--green); color: #fff;
+        font-size: 72px; font-weight: 800; line-height: 1;
+        box-shadow: 0 16px 40px rgba(44,86,81,0.28);
+      }
+
+      /* ---------- scene 1 ---------- */
+      #s1 .content { position: absolute; left: 180px; top: 50%; transform: translateY(-50%);
+        display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+      #s1 .title { font-size: 156px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
+      #s1 .rule { height: 5px; width: 0; border-radius: 3px; margin: 26px 0 6px;
+        background: linear-gradient(90deg, var(--green), var(--green-soft)); }
+      #s1 .subtitle { font-size: 46px; font-weight: 500; color: var(--ink-dim); letter-spacing: -0.01em; }
+
+      /* ---------- scene 2 ---------- */
+      #s2 .wrap { position: absolute; inset: 0; padding: 130px 180px; z-index: 2;
+        display: flex; flex-direction: column; justify-content: center; gap: 44px; }
+      #s2 .kicker { font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 22px; letter-spacing: 0.2em; color: var(--green); text-transform: uppercase; }
+      #s2 .heading { font-size: 84px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; color: var(--ink); }
+      #s2 .heading b { color: var(--green); }
+      #s2 .grid-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1380px; }
+      .chip {
+        display: flex; align-items: center; gap: 22px; padding: 30px 34px; border-radius: 22px;
+        background: var(--card); border: 2px solid var(--line); box-shadow: 0 2px 10px rgba(21,28,36,0.04);
+      }
+      .chip .ic { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center;
+        font-size: 30px; font-weight: 800; color: #fff; flex: none; }
+      .chip .nm { font-size: 38px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+      .chip .dot { margin-left: auto; width: 14px; height: 14px; border-radius: 50%;
+        background: var(--green); box-shadow: 0 0 12px rgba(58,111,105,0.5); }
+
+      /* ---------- scene 3 ---------- */
+      #s3 .wrap { position: absolute; inset: 0; padding: 120px 180px; z-index: 2;
+        display: flex; flex-direction: column; justify-content: center; gap: 64px; }
+      #s3 .heading { font-size: 88px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); }
+      #s3 .heading b { color: var(--green); }
+      .lane { position: relative; display: flex; align-items: center; height: 132px; }
+      .lane .label { width: 470px; flex: none; }
+      .lane .label .t { font-size: 40px; font-weight: 700; color: var(--ink); }
+      .lane .label .s { font-size: 26px; color: var(--ink-mute); margin-top: 4px; }
+      .lane .track { position: relative; flex: 1; height: 6px; border-radius: 3px; background: var(--bg-soft); }
+      .lane.proxy .track { background: rgba(58,111,105,0.18); }
+      .lane.direct .track { background: rgba(58,111,105,0.10); }
+      .pktdot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%;
+        transform: translate(-50%, -50%); background: var(--green); box-shadow: 0 0 14px rgba(58,111,105,0.6); }
+      .node { flex: none; margin: 0 26px; width: 168px; height: 110px; border-radius: 20px;
+        display: grid; place-items: center; text-align: center; color: #fff;
+        background: var(--green); font-weight: 800; box-shadow: 0 12px 32px rgba(44,86,81,0.28); }
+      .node .l1 { font-size: 30px; }
+      .node .l2 { font-size: 17px; font-weight: 600; opacity: 0.9;
+        font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.12em; }
+      .endpoint { flex: none; width: 110px; text-align: center; font-size: 40px; }
+
+      /* ---------- scene 4 ---------- */
+      #s4 .content { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 30px; z-index: 2; }
+      #s4 .title { font-size: 132px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
+      #s4 .sub { font-size: 44px; font-weight: 500; color: var(--ink-dim); }
+      #s4 .toggle { position: relative; width: 188px; height: 92px; border-radius: 46px;
+        background: var(--line-strong); margin: 8px 0; }
+      #s4 .toggle .knob { position: absolute; top: 10px; left: 10px; width: 72px; height: 72px;
+        border-radius: 50%; background: #fff; box-shadow: 0 6px 16px rgba(21,28,36,0.22); }
+      #s4 .cta { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px;
+        letter-spacing: 0.16em; color: var(--ink-mute); text-transform: uppercase; margin-top: 6px; }
+      #s4 .cta b { color: var(--green); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main"
+         data-start="0" data-duration="15" data-width="1920" data-height="1080">
+
+      <!-- ============ SCENE 1 — HOOK ============ -->
+      <section class="scene" id="s1">
+        <div class="glow g1" data-layout-ignore style="width:760px;height:760px;left:-160px;top:-220px;"></div>
+        <div class="glow g2" data-layout-ignore style="width:680px;height:680px;right:-180px;bottom:-220px;"></div>
+        <div class="grid"></div>
+        <div class="ghost" id="s1-ghost" data-layout-ignore style="font-size:460px;left:40px;bottom:-120px;">PROXY</div>
+        <div class="mark" style="top:64px;right:72px;">v0.5.0 · Manifest V3</div>
+        <span class="corner tl"></span><span class="corner br"></span>
+        <div class="content">
+          <div class="badge" id="s1-badge"><svg width="76" height="76" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="12" r="3.1" fill="#fff"/><circle cx="19" cy="12" r="3.1" fill="#fff"/><path d="M9.5 8.8 L13.2 12 L9.5 15.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="title" id="s1-title" style="margin-top:34px;">Proximate</div>
+          <div class="rule" id="s1-rule"></div>
+          <div class="subtitle" id="s1-sub">Smart proxy router for Chromium</div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 2 — SERVICES ============ -->
+      <section class="scene" id="s2">
+        <div class="glow g1" data-layout-ignore style="width:640px;height:640px;right:-140px;top:-160px;"></div>
+        <div class="glow g2" data-layout-ignore style="width:560px;height:560px;left:-160px;bottom:-180px;"></div>
+        <div class="grid"></div>
+        <span class="corner tl"></span><span class="corner br"></span>
+        <div class="wrap">
+          <div class="kicker" id="s2-kicker">10+ services supported</div>
+          <div class="heading" id="s2-head">Your AI tools.<br /><b>Routed.</b></div>
+          <div class="grid-chips">
+            <div class="chip"><span class="ic" style="background:#1a73e8">G</span><span class="nm">Gemini</span><span class="dot"></span></div>
+            <div class="chip"><span class="ic" style="background:#10a37f">◯</span><span class="nm">ChatGPT</span><span class="dot"></span></div>
+            <div class="chip"><span class="ic" style="background:#d97757">✳</span><span class="nm">Claude</span><span class="dot"></span></div>
+            <div class="chip"><span class="ic" style="background:#20808d">❖</span><span class="nm">Perplexity</span><span class="dot"></span></div>
+            <div class="chip"><span class="ic" style="background:#111827">𝕏</span><span class="nm">Grok</span><span class="dot"></span></div>
+            <div class="chip"><span class="ic" style="background:#5436da">11</span><span class="nm">ElevenLabs</span><span class="dot"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 3 — SMART ROUTING ============ -->
+      <section class="scene" id="s3">
+        <div class="glow g1" data-layout-ignore style="width:680px;height:680px;left:38%;top:-260px;"></div>
+        <div class="grid"></div>
+        <span class="corner tl"></span><span class="corner br"></span>
+        <div class="mark" style="bottom:60px;left:180px;">selective routing engine</div>
+        <div class="wrap">
+          <div class="heading" id="s3-head">Route <b>only what matters.</b></div>
+
+          <div class="lane proxy" id="s3-lane1">
+            <div class="label"><div class="t">AI &amp; work tools</div><div class="s">→ through your proxy</div></div>
+            <div class="track" id="s3-track1"></div>
+            <div class="node"><div class="l1">🛡</div><div class="l2">YOUR PROXY</div></div>
+            <div class="track" id="s3-track1b"></div>
+            <div class="endpoint">🌍</div>
+          </div>
+
+          <div class="lane direct" id="s3-lane2">
+            <div class="label"><div class="t">Everything else</div><div class="s">→ goes direct</div></div>
+            <div class="track" id="s3-track2"></div>
+            <div class="endpoint" style="margin-left:8px;">⚡</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SCENE 4 — CTA ============ -->
+      <section class="scene" id="s4">
+        <div class="glow g1" data-layout-ignore style="width:720px;height:720px;left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+        <div class="grid"></div>
+        <span class="corner tl"></span><span class="corner br"></span>
+        <div class="content">
+          <div class="badge" id="s4-badge"><svg width="76" height="76" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="12" r="3.1" fill="#fff"/><circle cx="19" cy="12" r="3.1" fill="#fff"/><path d="M9.5 8.8 L13.2 12 L9.5 15.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="title" id="s4-title">Proximate</div>
+          <div class="toggle" id="s4-toggle"><div class="knob" id="s4-knob"></div></div>
+          <div class="sub" id="s4-sub">Your proxy. Your rules.</div>
+          <div class="cta" id="s4-cta">Chromium · Free · <b>Open source</b></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.set("#s1", { opacity: 1, xPercent: 0 }, 0);
+      tl.set(["#s2", "#s3", "#s4"], { opacity: 0, xPercent: 6 }, 0);
+
+      function go(outSel, inSel, t) {
+        tl.to(outSel, { opacity: 0, xPercent: -6, duration: 0.5, ease: "power2.inOut" }, t);
+        tl.to(inSel, { opacity: 1, xPercent: 0, duration: 0.5, ease: "power2.inOut" }, t);
+      }
+
+      /* ambient (finite repeats, seekable) */
+      tl.to(".glow.g1", { scale: 1.12, duration: 4.2, ease: "sine.inOut", repeat: 3, yoyo: true }, 0);
+      tl.to(".glow.g2", { scale: 1.15, duration: 5.0, ease: "sine.inOut", repeat: 2, yoyo: true }, 0.5);
+      tl.to("#s1-ghost", { xPercent: 4, duration: 6, ease: "sine.inOut", repeat: 1, yoyo: true }, 0);
+
+      /* SCENE 1 */
+      tl.from("#s1-badge", { scale: 0.6, opacity: 0, rotate: -12, duration: 0.7, ease: "back.out(1.7)" }, 0.15);
+      tl.from("#s1-title", { y: 70, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.4);
+      tl.to("#s1-rule",    { width: 360, duration: 0.7, ease: "power2.out" }, 0.95);
+      tl.from("#s1-sub",   { y: 30, opacity: 0, duration: 0.6, ease: "power2.out" }, 1.05);
+
+      go("#s1", "#s2", 3.0);
+
+      /* SCENE 2 */
+      tl.from("#s2-kicker", { y: -24, opacity: 0, duration: 0.5, ease: "power2.out" }, 3.15);
+      tl.from("#s2-head",   { x: -50, opacity: 0, duration: 0.7, ease: "expo.out" }, 3.3);
+      tl.from("#s2 .chip",  { y: 56, opacity: 0, duration: 0.55, ease: "power3.out", stagger: 0.09 }, 3.6);
+      tl.from("#s2 .chip .dot", { scale: 0, duration: 0.4, ease: "back.out(2)", stagger: 0.09 }, 4.2);
+
+      go("#s2", "#s3", 6.6);
+
+      /* SCENE 3 */
+      tl.from("#s3-head",  { y: 40, opacity: 0, duration: 0.6, ease: "power3.out" }, 6.75);
+      tl.from("#s3-lane1", { x: -60, opacity: 0, duration: 0.6, ease: "expo.out" }, 7.0);
+      tl.from("#s3-lane2", { x: -60, opacity: 0, duration: 0.6, ease: "expo.out" }, 7.25);
+      tl.from(".node",     { scale: 0.7, opacity: 0, duration: 0.5, ease: "back.out(1.6)" }, 7.5);
+
+      function addDots(trackSel, count, startT, delayStep) {
+        const track = document.querySelector(trackSel);
+        for (let i = 0; i < count; i++) {
+          const d = document.createElement("div");
+          d.className = "pktdot";
+          track.appendChild(d);
+          tl.fromTo(d,
+            { left: "-2%", opacity: 0 },
+            { left: "102%", opacity: 1, duration: 1.1, ease: "none", repeat: 2, repeatDelay: 0.15 },
+            startT + i * delayStep);
+        }
+      }
+      addDots("#s3-track1",  2, 7.7, 0.55);
+      addDots("#s3-track1b", 2, 8.0, 0.55);
+      addDots("#s3-track2",  2, 7.7, 0.45);
+
+      go("#s3", "#s4", 10.4);
+
+      /* SCENE 4 */
+      tl.from("#s4-badge",  { scale: 0.6, opacity: 0, duration: 0.6, ease: "back.out(1.7)" }, 10.5);
+      tl.from("#s4-title",  { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 10.7);
+      tl.from("#s4-toggle", { scale: 0.8, opacity: 0, duration: 0.5, ease: "power2.out" }, 11.0);
+      tl.to("#s4-toggle", { backgroundColor: "#3a6f69", duration: 0.4, ease: "power2.out" }, 11.5);
+      tl.to("#s4-knob",   { x: 96, duration: 0.45, ease: "back.out(1.8)" }, 11.55);
+      tl.from("#s4-sub",  { y: 26, opacity: 0, duration: 0.5, ease: "power2.out" }, 11.6);
+      tl.from("#s4-cta",  { y: 20, opacity: 0, duration: 0.5, ease: "power2.out" }, 11.9);
+
+      /* final fade (last scene only) */
+      tl.to("#s4 .content", { opacity: 0, duration: 0.6, ease: "power1.in" }, 14.4);
+      tl.to("#s4 .glow",    { opacity: 0, duration: 0.6, ease: "power1.in" }, 14.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
