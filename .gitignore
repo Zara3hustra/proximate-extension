@@ -19,3 +19,5 @@ landing/uploads/
 # promo web-экспорт (дубль ассетов лендинга)
 promo/web/
 .wrangler/
+# лендинг-видео нужно в репо (несмотря на *.mp4)
+!landing/proximate-demo.mp4
