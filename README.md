@@ -3,12 +3,15 @@
 Chromium extension that routes selected work services through your own proxy
 profile. Everything else goes direct.
 
+**Website:** [tryproximate.com](https://tryproximate.com) · **Get a proxy (free trial):** [@ProximateProxyBot](https://t.me/ProximateProxyBot) · **Download:** [latest release](https://github.com/Zara3hustra/proximate-extension/releases/latest)
+
 ## Install
 
-1. Download or clone this repo
-2. Open `chrome://extensions`
+1. Download `proximate-extension-vX.Y.Z.zip` from the [latest release](https://github.com/Zara3hustra/proximate-extension/releases/latest) (or clone this repo)
+2. Unzip, then open `chrome://extensions`
 3. Enable **Developer mode**
 4. Click **Load unpacked** → select the `extension/` folder
+5. No proxy yet? Get a free trial in [@ProximateProxyBot](https://t.me/ProximateProxyBot)
 
 ## Setup
 
