@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Proximate — Privacy Policy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body{font-family:'Inter',system-ui,sans-serif;max-width:760px;margin:0 auto;padding:56px 24px;
+    color:#2c3640;line-height:1.6;background:#f8f9fb}
+  h1{font-size:34px;color:#151c24;letter-spacing:-.02em}
+  h2{font-size:20px;color:#3a6f69;margin-top:32px}
+  a{color:#3a6f69}
+  .muted{color:#7a8794;font-size:14px}
+  code{background:#e0efec;padding:1px 6px;border-radius:5px;font-size:14px}
+</style>
+</head>
+<body>
+  <h1>Privacy Policy — Proximate</h1>
+  <p class="muted">Last updated: 2026-06-07</p>
+
+  <p>Proximate is a browser extension that selectively routes user-chosen websites
+  through a proxy server provided and controlled by the user. This policy explains
+  what data the extension handles.</p>
+
+  <h2>Data we collect</h2>
+  <p><strong>None.</strong> Proximate does not collect, transmit, sell, or share any
+  personal data. We operate no servers that receive your data.</p>
+
+  <h2>Data stored locally</h2>
+  <p>All settings are stored only in your browser via <code>chrome.storage.local</code>:</p>
+  <ul>
+    <li>your proxy configuration (host, port, and credentials you enter);</li>
+    <li>the services and custom domains you choose to route.</li>
+  </ul>
+  <p>This data never leaves your device except as network traffic to the proxy server
+  you configured. Uninstalling the extension removes it.</p>
+
+  <h2>Your traffic</h2>
+  <p>For domains you select, requests are routed to <em>your</em> proxy server via a
+  locally generated PAC script. All other traffic goes directly. We have no access to,
+  and never see, your browsing or traffic.</p>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><code>proxy</code>, <code>webRequest</code>, <code>webRequestAuthProvider</code> — apply proxy routing and supply credentials to authenticated proxies.</li>
+    <li><code>storage</code> — save your settings locally.</li>
+    <li><code>tabs</code> — read the active tab URL for status / test actions.</li>
+    <li><code>privacy</code> — block non-proxied WebRTC UDP to prevent real-IP leaks while active.</li>
+    <li><code>favicon</code> — show favicons of added domains from the local browser cache (no third-party requests).</li>
+    <li><code>&lt;all_urls&gt;</code> — required so the PAC can decide per request whether to proxy or go direct. The extension does not read or modify page content.</li>
+  </ul>
+
+  <h2>Third parties</h2>
+  <p>No analytics, no trackers, no third-party data sharing. Favicons are loaded from
+  the browser's own local cache.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="https://t.me/ProximateProxyBot">@ProximateProxyBot</a> ·
+  Source code: <a href="https://github.com/Zara3hustra/proximate-extension">GitHub</a></p>
+</body>
+</html>
