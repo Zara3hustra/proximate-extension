@@ -66,6 +66,12 @@ export const PRESET_DEFINITIONS = {
     domains: ['youtube.com', 'www.youtube.com', 'youtu.be', 'googlevideo.com'],
     isAi: false,
   },
+  telegram: {
+    label: 'Telegram Web',
+    icon: '✈',
+    domains: ['telegram.org', 'web.telegram.org', 't.me'],
+    isAi: false,
+  },
   // Hidden preset — auto-routes Google login domains when ANY isAi preset is enabled.
   // Not exposed in UI; managed by pac.js.
   googleAuth: {
@@ -88,6 +94,7 @@ export const PRESET_ORDER = [
   'grok',
   'elevenlabs',
   'youtube',
+  'telegram',
 ];
 
 export const AI_PRESET_KEYS = Object.entries(PRESET_DEFINITIONS)
