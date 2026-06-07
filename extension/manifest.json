@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Proximate",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Smart proxy router for Chromium. Routes AI tools and work services through your own proxy server — everything else goes direct.",
-  "homepage_url": "https://github.com/Aimagine-life/proximate",
+  "homepage_url": "https://tryproximate.com",
   "minimum_chrome_version": "120",
   "background": {
     "service_worker": "background.js",
