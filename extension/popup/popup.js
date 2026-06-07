@@ -83,8 +83,13 @@ function renderMain() {
     const display = entry.mode === 'wildcard'
       ? `*.${entry.value}`
       : entry.mode === 'exact' ? `=${entry.value}` : entry.value;
+    // \u041b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 favicon \u0438\u0437 \u043a\u044d\u0448\u0430 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0430 (\u0431\u0435\u0437 \u0441\u0442\u043e\u0440\u043e\u043d\u043d\u0438\u0445 \u0437\u0430\u043f\u0440\u043e\u0441\u043e\u0432).
+    const favUrl = chrome.runtime.getURL(
+      `/_favicon/?pageUrl=${encodeURIComponent('https://' + entry.value)}&size=32`
+    );
     item.innerHTML = `
-      <div class="dot"></div>
+      <img class="fav" src="${favUrl}" alt="" width="18" height="18"
+           onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'dot'}))" />
       <div class="value">${escapeHtml(display)}</div>
       <button class="remove" type="button" title="\u0423\u0434\u0430\u043b\u0438\u0442\u044c">\u00d7</button>
     `;

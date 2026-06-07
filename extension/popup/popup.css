@@ -235,6 +235,12 @@ html, body {
   background: var(--green);
   flex-shrink: 0;
 }
+.custom-item .fav {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
 .custom-item .value {
   flex: 1;
   font-size: 12px;

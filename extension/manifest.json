@@ -31,7 +31,8 @@
     "webRequest",
     "webRequestAuthProvider",
     "tabs",
-    "privacy"
+    "privacy",
+    "favicon"
   ],
   "host_permissions": ["<all_urls>"]
 }
