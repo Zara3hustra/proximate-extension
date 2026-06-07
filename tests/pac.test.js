@@ -78,6 +78,17 @@ test('buildPacScript: custom wildcard domain in wildcards array', () => {
   assert.match(pac, /var wildcards = \["anthropic\.com"\]/);
 });
 
+test('buildPacScript: disabled custom domain is excluded', () => {
+  const pac = buildPacScript(makeState({
+    customDomains: [
+      { value: 'on.example', mode: 'suffix', enabled: true },
+      { value: 'off.example', mode: 'suffix', enabled: false },
+    ],
+  }));
+  assert.match(pac, /"on\.example"/);
+  assert.doesNotMatch(pac, /"off\.example"/);
+});
+
 test('buildPacScript: custom exact domain in exacts array', () => {
   const pac = buildPacScript(makeState({
     customDomains: [{ value: 'example.com', mode: 'exact' }],

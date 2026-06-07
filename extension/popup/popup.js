@@ -78,8 +78,10 @@ function renderMain() {
   const list = $('#custom-list');
   list.innerHTML = '';
   for (const entry of state.customDomains || []) {
+    const isOn = entry.enabled !== false;
     const item = document.createElement('div');
-    item.className = 'custom-item';
+    item.className = isOn ? 'custom-item on' : 'custom-item off';
+    item.title = isOn ? '\u0412\u043a\u043b\u044e\u0447\u0451\u043d \u2014 \u043d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0432\u044b\u043a\u043b\u044e\u0447\u0438\u0442\u044c' : '\u0412\u044b\u043a\u043b\u044e\u0447\u0435\u043d \u2014 \u043d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u044c';
     const display = entry.mode === 'wildcard'
       ? `*.${entry.value}`
       : entry.mode === 'exact' ? `=${entry.value}` : entry.value;
@@ -93,7 +95,14 @@ function renderMain() {
       <div class="value">${escapeHtml(display)}</div>
       <button class="remove" type="button" title="\u0423\u0434\u0430\u043b\u0438\u0442\u044c">\u00d7</button>
     `;
-    item.querySelector('.remove').addEventListener('click', () => removeCustom(entry));
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.remove')) return;
+      toggleCustom(entry);
+    });
+    item.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeCustom(entry);
+    });
     list.appendChild(item);
   }
 }
@@ -183,6 +192,16 @@ function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
+}
+
+async function toggleCustom(entry) {
+  const target = (state.customDomains || []).find(
+    (x) => x.value === entry.value && x.mode === entry.mode
+  );
+  if (!target) return;
+  target.enabled = target.enabled === false;  // off → on, on/undefined → off
+  await persist();
+  renderMain();
 }
 
 async function removeCustom(entry) {

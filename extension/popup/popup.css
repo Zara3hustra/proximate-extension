@@ -228,7 +228,14 @@ html, body {
   border: 1px solid var(--border);
   border-radius: 7px;
   padding: 8px 10px;
+  cursor: pointer;
+  transition: opacity 0.15s, border-color 0.15s;
 }
+.custom-item.on { border-color: var(--green); }
+.custom-item.off { opacity: 0.5; }
+.custom-item.off .value { text-decoration: line-through; }
+.custom-item.off .fav { filter: grayscale(1); }
+.custom-item.off .dot { background: var(--text-mute); }
 .custom-item .dot {
   width: 6px; height: 6px;
   border-radius: 50%;

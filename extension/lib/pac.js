@@ -29,6 +29,7 @@ function collectDomains(state) {
 
   for (const entry of state.customDomains || []) {
     if (!entry || !entry.value) continue;
+    if (entry.enabled === false) continue;
     if (entry.mode === 'wildcard') wildcards.push(entry.value);
     else if (entry.mode === 'exact') exacts.push(entry.value);
     else suffixes.push(entry.value);
