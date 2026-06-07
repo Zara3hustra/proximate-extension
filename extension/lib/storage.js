@@ -18,6 +18,7 @@ export function getDefaultState() {
       perplexity: { enabled: false, domains: ['perplexity.ai', 'www.perplexity.ai'] },
       grok:       { enabled: false, domains: ['grok.com', 'www.grok.com', 'x.ai'] },
       elevenlabs: { enabled: false, domains: ['elevenlabs.io', 'www.elevenlabs.io', 'api.elevenlabs.io'] },
+      youtube:    { enabled: false, domains: ['youtube.com', 'www.youtube.com', 'youtu.be', 'googlevideo.com'] },
     },
     customDomains: [],
   };

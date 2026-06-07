@@ -60,6 +60,12 @@ export const PRESET_DEFINITIONS = {
     domains: ['elevenlabs.io', 'www.elevenlabs.io', 'api.elevenlabs.io'],
     isAi: false,
   },
+  youtube: {
+    label: 'YouTube',
+    icon: '▷',
+    domains: ['youtube.com', 'www.youtube.com', 'youtu.be', 'googlevideo.com'],
+    isAi: false,
+  },
   // Hidden preset — auto-routes Google login domains when ANY isAi preset is enabled.
   // Not exposed in UI; managed by pac.js.
   googleAuth: {
@@ -81,6 +87,7 @@ export const PRESET_ORDER = [
   'perplexity',
   'grok',
   'elevenlabs',
+  'youtube',
 ];
 
 export const AI_PRESET_KEYS = Object.entries(PRESET_DEFINITIONS)
