@@ -161,6 +161,7 @@ html, body {
 }
 .preset-card:hover { background: var(--bg-hover); }
 .preset-card .icon { font-size: 22px; line-height: 1; margin-bottom: 5px; color: var(--text-dim); }
+.preset-card .icon svg { width: 22px; height: 22px; display: inline-block; vertical-align: middle; }
 .preset-card .label { font-size: 10px; font-weight: 600; color: var(--text-dim); }
 .preset-card.on {
   background: rgba(58, 111, 105, 0.06);
@@ -569,3 +570,16 @@ html, body {
   text-underline-offset: 3px;
 }
 .cta-secondary:hover { color: var(--text); }
+
+.site-footer {
+  text-align: center;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--border);
+}
+.site-footer a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.site-footer a:hover { color: var(--green); }

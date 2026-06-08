@@ -68,7 +68,7 @@ export const PRESET_DEFINITIONS = {
   },
   telegram: {
     label: 'Telegram Web',
-    icon: '✈',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.6 20q-.37 1.6-1.95.93l-4.4-3.24-2.12 2.04q-.35.35-.72.35l.26-3.66 6.66-6.02q.44-.4-.1-.62l-8.23 5.18-3.55-1.11q-1.55-.48-.03-1.07L20.3 3.13q1.29-.5 1.6 1.17Z"/></svg>',
     domains: ['telegram.org', 'web.telegram.org', 't.me'],
     isAi: false,
   },
