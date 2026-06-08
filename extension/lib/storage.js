@@ -20,6 +20,7 @@ export function getDefaultState() {
       elevenlabs: { enabled: false, domains: ['elevenlabs.io', 'www.elevenlabs.io', 'api.elevenlabs.io'] },
       youtube:    { enabled: false, domains: ['youtube.com', 'www.youtube.com', 'youtu.be', 'googlevideo.com'] },
       telegram:   { enabled: false, domains: ['telegram.org', 'web.telegram.org', 't.me'] },
+      notion:     { enabled: false, domains: ['notion.so', 'www.notion.so', 'notion.com'] },
     },
     customDomains: [],
   };

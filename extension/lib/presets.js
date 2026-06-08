@@ -72,6 +72,12 @@ export const PRESET_DEFINITIONS = {
     domains: ['telegram.org', 'web.telegram.org', 't.me'],
     isAi: false,
   },
+  notion: {
+    label: 'Notion',
+    icon: '𝐍',
+    domains: ['notion.so', 'www.notion.so', 'notion.com'],
+    isAi: false,
+  },
   // Hidden preset — auto-routes Google login domains when ANY isAi preset is enabled.
   // Not exposed in UI; managed by pac.js.
   googleAuth: {
@@ -95,6 +101,7 @@ export const PRESET_ORDER = [
   'elevenlabs',
   'youtube',
   'telegram',
+  'notion',
 ];
 
 export const AI_PRESET_KEYS = Object.entries(PRESET_DEFINITIONS)
