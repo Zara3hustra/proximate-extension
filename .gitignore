@@ -21,3 +21,5 @@ promo/web/
 .wrangler/
 # лендинг-видео нужно в репо (несмотря на *.mp4)
 !landing/proximate-demo.mp4
+*.zip
+extension.zip
